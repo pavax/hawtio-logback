@@ -6,11 +6,10 @@ Quick-And-Diry Approach in order to provivde LogQuery-Support for Logback
 The Approach is mainly based on the insight-log4j project (see: https://github.com/fabric8io/fabric8/tree/master/insight/insight-log4j)
 
 
-Howto Integrate
-==============
+<h1>Howto Integrate</h1>
+<h2>Spring-Config</h2>
 
-Spring-Config
-
+```java
 @Configuration
 public class LogbackLogQueryConfig {
     @Bean
@@ -18,3 +17,4 @@ public class LogbackLogQueryConfig {
         return new LogbackAwareLogQueryMBeanImpl(1000);
     }
 }
+```
