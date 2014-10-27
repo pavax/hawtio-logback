@@ -189,7 +189,7 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
             return new Predicate<LogEvent>() {
                 @Override
                 public boolean matches(LogEvent event) {
-                    // TODO pado
+                    // TODO Implement Text-Matcher Predicate
                     return true;
                 }
             };
@@ -228,23 +228,53 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
 
     public static class LogEventAssembler {
 
-        private static LogEvent toLogEvent(ILoggingEvent element, String hostName) {
+        public static LogEvent toLogEvent(ILoggingEvent element, String hostName) {
             LogEvent answer = new LogEvent();
 
-            // TODO
-            //answer.setContainerName(element.get);
-            IThrowableProxy throwableInformation = element.getThrowableProxy();
-            if (throwableInformation != null) {
-                StackTraceElementProxy[] stepArray = throwableInformation.getStackTraceElementProxyArray();
-                List<String> exceptionStrings = new ArrayList<String>(stepArray.length);
-                for (StackTraceElementProxy step : stepArray) {
-                    exceptionStrings.add(step.toString());
-                }
-                answer.setException(exceptionStrings.toArray(new String[exceptionStrings.size()]));
-            }
+            initExceptionData(answer, element);
 
-            StackTraceElement[] callerData = element.getCallerData();
+            initCallerData(answer, element);
+
+            initLogLevelData(answer, element);
+
+            initMessage(answer, element);
+
+            initMiscData(answer, element, hostName);
+
+            return answer;
+        }
+
+        private static void initMiscData(LogEvent answer, ILoggingEvent element, String hostName) {
+            answer.setLogger(element.getLoggerName());
+            answer.setProperties(element.getMDCPropertyMap());
+            answer.setSeq(element.getTimeStamp());
+            answer.setTimestamp(new Date(element.getTimeStamp()));
+            answer.setThread(element.getThreadName());
+            answer.setHost(hostName);
+        }
+
+        private static void initMessage(LogEvent answer, ILoggingEvent element) {
+            String message = element.getFormattedMessage();
+            if (message != null) {
+                answer.setMessage(message);
+            }
+        }
+
+        private static void initLogLevelData(LogEvent answer, ILoggingEvent element) {
+            Level level = element.getLevel();
+            if (level != null) {
+                answer.setLevel(level.toString());
+            }
+        }
+
+        private static void initExceptionData(LogEvent answer, ILoggingEvent element) {
+            answer.setException(extractExceptionInformation(element));
+        }
+
+        private static void initCallerData(LogEvent answer, ILoggingEvent loggingEvent) {
+            StackTraceElement[] callerData = loggingEvent.getCallerData();
             if (callerData.length != 0) {
+                // TODO figure out correct callerData index-position
                 StackTraceElement stackTraceElement = callerData[0];
                 answer.setClassName(stackTraceElement.getClassName());
                 answer.setFileName(stackTraceElement.getFileName());
@@ -252,21 +282,20 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
                 answer.setMethodName(stackTraceElement.getMethodName());
                 answer.setLineNumber(Integer.toString(stackTraceElement.getLineNumber()));
             }
-            Level level = element.getLevel();
-            if (level != null) {
-                answer.setLevel(level.toString());
+        }
+
+        private static String[] extractExceptionInformation(ILoggingEvent loggingEvent) {
+            IThrowableProxy throwableProxy = loggingEvent.getThrowableProxy();
+            if (throwableProxy != null && throwableProxy.getStackTraceElementProxyArray().length > 0) {
+                StackTraceElementProxy[] stepArray = throwableProxy.getStackTraceElementProxyArray();
+                String[] exceptionStringArray = new String[stepArray.length];
+                for (int i = 0; i < stepArray.length; i++) {
+                    exceptionStringArray[i] = stepArray[i].toString();
+                }
+                return exceptionStringArray;
+
             }
-            answer.setLogger(element.getLoggerName());
-            String message = element.getFormattedMessage();
-            if (message != null) {
-                answer.setMessage(message);
-            }
-            answer.setProperties(element.getMDCPropertyMap());
-            answer.setSeq(element.getTimeStamp());
-            answer.setTimestamp(new Date(element.getTimeStamp()));
-            answer.setThread(element.getThreadName());
-            answer.setHost(hostName);
-            return answer;
+            return null;
         }
     }
 
