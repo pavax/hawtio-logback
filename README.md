@@ -1,9 +1,9 @@
 hawtio-logback
 ==============
 
-Quick-And-Diry approach in order to provivde 'LogQuery'-Support for Logback.
+Quick-And-Dirty approach in order to provivde 'LogQuery'-Support (see: https://github.com/fabric8io/fabric8/tree/master/insight/insight-log-core) for Logback.
 
-The Approach is mainly based on the insight-log4j project (see: https://github.com/fabric8io/fabric8/tree/master/insight/insight-log4j)
+The Approach is mainly influenced on the insight-log4j project (see: https://github.com/fabric8io/fabric8/tree/master/insight/insight-log4j)
 
 <h1>Why</h1>
 We simply wanted to access our most-recent (Logback-Based) Logs from within <a href="http://hawt.io" >'Hawtio'</a>
