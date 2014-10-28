@@ -8,6 +8,11 @@ The Approach is mainly influenced by the insight-log4j project (see: https://git
 <h1>Why</h1>
 In our project we simply wanted to access our most-recent (Logback-Based) log outputs from within the <a href="http://hawt.io" >'Hawtio'</a> app
 
+<h1>Open Items</h1>
+* Add Maven Coordinates Support 
+* Add Better Predicate Filtering Support
+* CallerData is not always determined correclty
+
 <h1>Howto Integrate</h1>
 <h2>Spring-Annotation-Config</h2>
 
