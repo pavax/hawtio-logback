@@ -14,14 +14,28 @@ public class LevelBasedCyclicBufferAppender extends AppenderBase<ILoggingEvent> 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LevelBasedCyclicBufferAppender.class);
 
-    public static final int DEFAULT_SIZE = 64;
+    private static final int DEFAULT_BUFFER_SIZE = 64;
 
-    private int maxBufferSizePerLevel = DEFAULT_SIZE;
+    private Map<String, Integer> maxBufferSizePerLevelMap = new HashMap<String, Integer>();
 
     private Map<Level, CyclicBuffer<ILoggingEvent>> bufferMap = null;
 
-    public LevelBasedCyclicBufferAppender(int maxBufferSizePerLevel) {
-        this.maxBufferSizePerLevel = maxBufferSizePerLevel;
+    {
+        maxBufferSizePerLevelMap.put(Level.TRACE.toString(), DEFAULT_BUFFER_SIZE);
+        maxBufferSizePerLevelMap.put(Level.DEBUG.toString(), DEFAULT_BUFFER_SIZE);
+        maxBufferSizePerLevelMap.put(Level.INFO.toString(), DEFAULT_BUFFER_SIZE);
+        maxBufferSizePerLevelMap.put(Level.WARN.toString(), DEFAULT_BUFFER_SIZE);
+        maxBufferSizePerLevelMap.put(Level.ERROR.toString(), DEFAULT_BUFFER_SIZE);
+    }
+
+    public LevelBasedCyclicBufferAppender(int maxBufferSizeForEveryLevel) {
+        for (Map.Entry<String, Integer> maxBufferSizePerLevelEntrySet : maxBufferSizePerLevelMap.entrySet()) {
+            maxBufferSizePerLevelEntrySet.setValue(maxBufferSizeForEveryLevel);
+        }
+    }
+
+    public LevelBasedCyclicBufferAppender(Map<String, Integer> maxBufferSizePerLevel) {
+        this.maxBufferSizePerLevelMap.putAll(maxBufferSizePerLevel);
     }
 
     @Override
@@ -41,11 +55,11 @@ public class LevelBasedCyclicBufferAppender extends AppenderBase<ILoggingEvent> 
 
     public void start() {
         bufferMap = new HashMap<Level, CyclicBuffer<ILoggingEvent>>(5);
-        bufferMap.put(Level.TRACE, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevel));
-        bufferMap.put(Level.DEBUG, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevel));
-        bufferMap.put(Level.INFO, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevel));
-        bufferMap.put(Level.WARN, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevel));
-        bufferMap.put(Level.ERROR, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevel));
+        bufferMap.put(Level.TRACE, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.TRACE.toString())));
+        bufferMap.put(Level.DEBUG, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.DEBUG.toString())));
+        bufferMap.put(Level.INFO, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.INFO.toString())));
+        bufferMap.put(Level.WARN, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.WARN.toString())));
+        bufferMap.put(Level.ERROR, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.ERROR.toString())));
         super.start();
     }
 
@@ -81,9 +95,6 @@ public class LevelBasedCyclicBufferAppender extends AppenderBase<ILoggingEvent> 
         return resultList;
     }
 
-    public void setMaxBufferSizePerLevel(int maxBufferSizePerLevel) {
-        this.maxBufferSizePerLevel = maxBufferSizePerLevel;
-    }
 
     private static void sortByTimeStamp(List<ILoggingEvent> resultList) {
         Collections.sort(resultList, new Comparator<ILoggingEvent>() {
