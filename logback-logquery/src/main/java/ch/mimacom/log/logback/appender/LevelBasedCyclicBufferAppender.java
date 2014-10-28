@@ -43,7 +43,7 @@ public class LevelBasedCyclicBufferAppender extends AppenderBase<ILoggingEvent> 
         if (!isStarted()) {
             return;
         }
-        // This will make sure the caller-data is initialized in-memory for latter usage
+        // This will make sure the caller-data is initialized in-memory for later usage
         eventObject.getCallerData();
         CyclicBuffer<ILoggingEvent> cyclicBuffer = bufferMap.get(eventObject.getLevel());
         if (cyclicBuffer != null) {

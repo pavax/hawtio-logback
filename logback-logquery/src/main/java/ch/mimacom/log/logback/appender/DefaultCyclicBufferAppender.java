@@ -23,7 +23,7 @@ public class DefaultCyclicBufferAppender extends CyclicBufferAppender<ILoggingEv
     @Override
     protected void append(ILoggingEvent eventObject) {
         super.append(eventObject);
-        // This will make sure the caller-data is initialized in-memory for latter usage
+        // This will make sure the caller-data is initialized in-memory for later usage
         eventObject.getCallerData();
     }
 
