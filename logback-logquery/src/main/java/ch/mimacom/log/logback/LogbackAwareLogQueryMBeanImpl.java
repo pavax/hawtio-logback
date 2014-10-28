@@ -1,10 +1,10 @@
 package ch.mimacom.log.logback;
 
+import ch.mimacom.log.logback.appender.DefaultCyclicBufferAppender;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
-import ch.qos.logback.core.read.CyclicBufferAppender;
 import ch.qos.logback.core.spi.AppenderAttachable;
 import io.fabric8.insight.log.LogEvent;
 import io.fabric8.insight.log.LogFilter;
@@ -28,15 +28,17 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogbackAwareLogQueryMBeanImpl.class);
 
-    private final CyclicBufferAppender<ILoggingEvent> cyclicBufferAppender = new ILoggingEventAwareCyclicBufferAppender();
+    private final LogQueryAwareAppender logQueryAwareAppender;
 
-    private final int maxLogsBufferSize;
+    public LogbackAwareLogQueryMBeanImpl() {
+        this(new DefaultCyclicBufferAppender());
+    }
 
-    public LogbackAwareLogQueryMBeanImpl(int maxLogsBufferSize) {
-        if (!(maxLogsBufferSize > 0)) {
-            throw new IllegalArgumentException("A positive 'maxLogsBufferSize' greater than 0 must be set");
+    public LogbackAwareLogQueryMBeanImpl(LogQueryAwareAppender logQueryAwareAppender) {
+        if (logQueryAwareAppender == null) {
+            throw new IllegalArgumentException("A 'logQueryAwareAppender' must be set");
         }
-        this.maxLogsBufferSize = maxLogsBufferSize;
+        this.logQueryAwareAppender = logQueryAwareAppender;
     }
 
     @PostConstruct
@@ -81,10 +83,9 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
             appenderAttachable = (AppenderAttachable) root;
         }
         if (appenderAttachable != null) {
-            cyclicBufferAppender.setName("LogQueryCyclicBufferAppender");
-            cyclicBufferAppender.setMaxSize(maxLogsBufferSize);
-            cyclicBufferAppender.start();
-            appenderAttachable.addAppender(cyclicBufferAppender);
+            logQueryAwareAppender.setName("LogQueryAwareAppender");
+            logQueryAwareAppender.start();
+            appenderAttachable.addAppender(logQueryAwareAppender);
         } else {
             LOGGER.error("No ILoggerFactory found so cannot attach appender!");
         }
@@ -148,8 +149,10 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
         long from = Long.MAX_VALUE;
         long to = Long.MIN_VALUE;
         final List<LogEvent> list = new ArrayList<LogEvent>();
-        for (int i = 0; i < cyclicBufferAppender.getLength(); i++) {
-            ILoggingEvent element = cyclicBufferAppender.get(i);
+
+
+        List<ILoggingEvent> allEvents = logQueryAwareAppender.getAllEvents();
+        for (ILoggingEvent element : allEvents) {
             LogEvent logEvent = LogEventAssembler.toLogEvent(element, getHostName());
             long timestamp = element.getTimeStamp();
             if (timestamp > to) {
@@ -168,6 +171,7 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
                 }
             }
         }
+
         LogResults results = new LogResults();
         results.setEvents(list);
         if (from < Long.MAX_VALUE) {
@@ -178,7 +182,7 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Requested " + maxCount + " logging items. returning "
-                    + results.getEvents().size() + " event(s) from a possible " + cyclicBufferAppender.getLength());
+                    + results.getEvents().size() + " event(s) from a possible " + logQueryAwareAppender.getLength());
 
         }
         return results;
@@ -299,13 +303,4 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
         }
     }
 
-    public static class ILoggingEventAwareCyclicBufferAppender extends CyclicBufferAppender<ILoggingEvent> {
-
-        @Override
-        protected void append(ILoggingEvent eventObject) {
-            super.append(eventObject);
-            // This will make sure the caller-data is initialized in-memory for latter usage
-            eventObject.getCallerData();
-        }
-    }
 }
