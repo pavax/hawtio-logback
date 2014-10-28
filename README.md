@@ -21,7 +21,7 @@ In our project we simply wanted to access our most-recent (Logback-Based) log ou
 public class LogbackLogQueryConfig {
     @Bean
     public LogbackAwareLogQueryMBeanImpl createLogbackAwareLogQueryMBeanImpl() {
-        return new LogbackAwareLogQueryMBeanImpl(1000);
+        return new LogbackAwareLogQueryMBeanImpl(new DefaultCyclicBufferAppender(10));
     }
 }
 ```
@@ -35,7 +35,11 @@ public class LogbackLogQueryConfig {
     <bean class="ch.mimacom.log.logback.LogbackAwareLogQueryMBeanImpl"
           init-method="start"
           destroy-method="stop">
-        <constructor-arg name="maxLogsBufferSize" value="1000"/>
+        <constructor-arg name="logQueryAwareAppender">
+            <bean class="ch.mimacom.log.logback.appender.DefaultCyclicBufferAppender">
+                <constructor-arg name="maxBufferSize" value="1000"/>
+            </bean>
+        </constructor-arg>
     </bean>
 </beans>
 ```
