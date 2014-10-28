@@ -14,7 +14,11 @@ In our project we simply wanted to access our most-recent (Logback-Based) log ou
 * CallerData is not always determined correclty
 
 <h1>Howto Integrate</h1>
-<h2>Spring-Annotation-Config</h2>
+
+<h2>DefaultCyclicBufferAppender</h2>
+The DefaultCyclicBufferAppender keeps N-Log-Events in-memory.
+
+<h3>Spring-Annotation-Config</h3>
 
 ```java
 @Configuration
@@ -25,7 +29,7 @@ public class LogbackLogQueryConfig {
     }
 }
 ```
-<h2>Spring-XML-Config</h2>
+<h3>Spring-XML-Config</h3>
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -42,4 +46,27 @@ public class LogbackLogQueryConfig {
         </constructor-arg>
     </bean>
 </beans>
+```
+
+<h2>LevelBasedCyclicBufferAppender</h2>
+Allows to define a buffer-size for each level. Thus N-Log-Events for every Level are keept in-memory
+<h3>Spring-Annotation-Config</h3>
+```java
+@Configuration
+public class LogbackLogQueryConfig {
+  @Bean
+    public LogbackAwareLogQueryMBeanImpl createLogbackAwareLogQueryMBeanImpl() {
+        return new LogbackAwareLogQueryMBeanImpl(
+                new LevelBasedCyclicBufferAppender(
+                        ImmutableMap.<String, Integer>builder()
+                                .put("TRACE", 5)
+                                .put("DEBUG", 5)
+                                .put("INFO", 5)
+                                .put("WARN", 10)
+                                .put("ERROR", 10)
+                                .build()
+                )
+        );
+    }
+}
 ```
