@@ -49,7 +49,7 @@ public class LogbackLogQueryConfig {
 ```
 
 <h2>LevelBasedCyclicBufferAppender</h2>
-Allows to define a buffer-size for each level. Thus N-Log-Events for ervery Level are keept in-memory
+Allows to define a buffer-size for each level. Thus N-Log-Events for every Level are keept in-memory
 <h3>Spring-Annotation-Config</h3>
 ```java
 @Configuration
