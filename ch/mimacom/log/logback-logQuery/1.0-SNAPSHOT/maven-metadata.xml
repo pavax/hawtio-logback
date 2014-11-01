@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>ch.mimacom.log</groupId>
+  <artifactId>logback-logQuery</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20141101.141531</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20141101141531</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>1.0-20141101.141531-1</value>
+        <updated>20141101141531</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>1.0-20141101.141531-1</value>
+        <updated>20141101141531</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
