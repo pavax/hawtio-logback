@@ -1,8 +1,10 @@
 package ch.mimacom.log.logback;
 
-import ch.mimacom.log.logback.appender.DefaultCyclicBufferAppender;
+import ch.mimacom.log.logback.appender.CyclicBufferAbstractAppenderWrapper;
 import ch.mimacom.log.logback.appender.LevelBasedCyclicBufferAppender;
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.CyclicBufferAppender;
 import io.fabric8.insight.log.LogEvent;
 import io.fabric8.insight.log.LogResults;
 import io.fabric8.insight.log.support.LogQuerySupport;
@@ -18,10 +20,11 @@ public class LogbackAwareLogQueryMBeanImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogbackAwareLogQueryMBeanImplTest.class);
 
+
     @Test
     public void testGetEventsUsingDefaultCyclicBufferAppender() throws Exception {
         LogQuerySupport logbackAwareLogQueryMBean = new LogbackAwareLogQueryMBeanImpl(
-                new DefaultCyclicBufferAppender(10)
+                new CyclicBufferAbstractAppenderWrapper(new CyclicBufferAppender<ILoggingEvent>(), 10)
         );
         logbackAwareLogQueryMBean.start();
         createLogStatement(10, Level.INFO);
@@ -46,15 +49,14 @@ public class LogbackAwareLogQueryMBeanImplTest {
 
     @Test
     public void testEventData() throws Exception {
-        LogQuerySupport logbackAwareLogQueryMBean = new LogbackAwareLogQueryMBeanImpl(
-                new DefaultCyclicBufferAppender(10)
-        );
+        LogQuerySupport logbackAwareLogQueryMBean = new LogbackAwareLogQueryMBeanImpl("MEMORY_APPENDER");
         logbackAwareLogQueryMBean.start();
         createLogStatement(1, Level.INFO);
         LogResults logResults = logbackAwareLogQueryMBean.getLogResults(1);
         Assert.assertEquals(1, logResults.getEvents().size());
         LogEvent logEvent = logResults.getEvents().get(0);
         Assert.assertEquals("LOG-INFO-TEST: 0", logEvent.getMessage());
+        Assert.assertNotNull(logEvent.getClassName());
     }
 
     private void createLogStatement(int counts, Level level) {

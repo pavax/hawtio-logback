@@ -1,17 +1,17 @@
 package ch.mimacom.log.logback;
 
-import ch.mimacom.log.logback.appender.DefaultCyclicBufferAppender;
+import ch.mimacom.log.logback.appender.CyclicBufferAbstractAppenderWrapper;
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
-import ch.qos.logback.core.spi.AppenderAttachable;
+import ch.qos.logback.core.read.CyclicBufferAppender;
 import io.fabric8.insight.log.LogEvent;
 import io.fabric8.insight.log.LogFilter;
 import io.fabric8.insight.log.LogResults;
 import io.fabric8.insight.log.support.LogQuerySupport;
 import io.fabric8.insight.log.support.Predicate;
-import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +28,12 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogbackAwareLogQueryMBeanImpl.class);
 
-    private final LogQueryAwareAppender logQueryAwareAppender;
+    private LogQueryAwareAppender logQueryAwareAppender;
 
-    public LogbackAwareLogQueryMBeanImpl() {
-        this(new DefaultCyclicBufferAppender());
+    private final String existingCyclicBufferAppenderName;
+
+    public LogbackAwareLogQueryMBeanImpl(String existingCyclicBufferAppenderName) {
+        this.existingCyclicBufferAppenderName = existingCyclicBufferAppenderName;
     }
 
     public LogbackAwareLogQueryMBeanImpl(LogQueryAwareAppender logQueryAwareAppender) {
@@ -39,6 +41,7 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
             throw new IllegalArgumentException("A 'logQueryAwareAppender' must be set");
         }
         this.logQueryAwareAppender = logQueryAwareAppender;
+        this.existingCyclicBufferAppenderName = null;
     }
 
     @PostConstruct
@@ -73,21 +76,21 @@ public class LogbackAwareLogQueryMBeanImpl extends LogQuerySupport {
     }
 
     private void attachAdapter() {
-        ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
-        AppenderAttachable appenderAttachable = null;
-        if (loggerFactory instanceof AppenderAttachable) {
-            appenderAttachable = (AppenderAttachable) loggerFactory;
-        }
-        if (appenderAttachable == null) {
-            Logger root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-            appenderAttachable = (AppenderAttachable) root;
-        }
-        if (appenderAttachable != null) {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger logger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+        if (existingCyclicBufferAppenderName != null) {
+            CyclicBufferAppender<ILoggingEvent> existingCyclicBufferAppender = (CyclicBufferAppender<ILoggingEvent>) logger.getAppender(existingCyclicBufferAppenderName);
+            if (existingCyclicBufferAppender == null) {
+                throw new IllegalArgumentException("Could not find an existing Appender with Name=" + existingCyclicBufferAppenderName);
+            }
+            logger.detachAppender(existingCyclicBufferAppender);
+            CyclicBufferAbstractAppenderWrapper cyclicBufferAppenderWrapper = new CyclicBufferAbstractAppenderWrapper(existingCyclicBufferAppender);
+            logger.addAppender(cyclicBufferAppenderWrapper);
+            logQueryAwareAppender = cyclicBufferAppenderWrapper;
+        } else {
             logQueryAwareAppender.setName("LogQueryAwareAppender");
             logQueryAwareAppender.start();
-            appenderAttachable.addAppender(logQueryAwareAppender);
-        } else {
-            LOGGER.error("No ILoggerFactory found so cannot attach appender!");
+            logger.addAppender(logQueryAwareAppender);
         }
     }
 
