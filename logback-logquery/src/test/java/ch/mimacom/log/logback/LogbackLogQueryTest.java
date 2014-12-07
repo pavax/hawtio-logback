@@ -15,11 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class LogbackLogQueryMBeanImplTest {
+public class LogbackLogQueryTest {
 
     private static final int ALL_LOG_RESULTS = -1;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogbackLogQueryMBeanImplTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LogbackLogQueryTest.class);
 
     private LogQuerySupport logQuerySupport;
 
