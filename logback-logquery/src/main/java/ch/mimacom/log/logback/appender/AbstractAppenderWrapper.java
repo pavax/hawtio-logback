@@ -11,102 +11,102 @@ import java.util.List;
 
 public abstract class AbstractAppenderWrapper<APPENDER extends Appender<E>, E> implements Appender<E> {
 
-    private final APPENDER delegateAppender;
+    private final APPENDER wrappedAppender;
 
-    public AbstractAppenderWrapper(APPENDER delegateAppender) {
-        if (delegateAppender == null) {
+    public AbstractAppenderWrapper(APPENDER wrappedAppender) {
+        if (wrappedAppender == null) {
             throw new IllegalArgumentException("'delegateAppender' must not be null");
         }
-        this.delegateAppender = delegateAppender;
+        this.wrappedAppender = wrappedAppender;
     }
 
-    protected APPENDER getDelegateAppender() {
-        return delegateAppender;
+    protected APPENDER getWrappedAppender() {
+        return wrappedAppender;
     }
 
     public String getName() {
-        return delegateAppender.getName();
+        return wrappedAppender.getName();
     }
 
     public void doAppend(E event) throws LogbackException {
-        delegateAppender.doAppend(event);
+        wrappedAppender.doAppend(event);
     }
 
     public void setName(String name) {
-        delegateAppender.setName(name);
+        wrappedAppender.setName(name);
     }
 
     public void start() {
-        delegateAppender.start();
+        wrappedAppender.start();
     }
 
     public void stop() {
-        delegateAppender.stop();
+        wrappedAppender.stop();
     }
 
     public boolean isStarted() {
-        return delegateAppender.isStarted();
+        return wrappedAppender.isStarted();
     }
 
 
     public void setContext(Context context) {
-        delegateAppender.setContext(context);
+        wrappedAppender.setContext(context);
     }
 
     public Context getContext() {
-        return delegateAppender.getContext();
+        return wrappedAppender.getContext();
     }
 
     public void addStatus(Status status) {
-        delegateAppender.addStatus(status);
+        wrappedAppender.addStatus(status);
     }
 
     public void addInfo(String msg) {
-        delegateAppender.addInfo(msg);
+        wrappedAppender.addInfo(msg);
     }
 
     @Override
     public void addInfo(String msg, Throwable ex) {
-        delegateAppender.addInfo(msg, ex);
+        wrappedAppender.addInfo(msg, ex);
     }
 
     @Override
     public void addWarn(String msg) {
-        delegateAppender.addWarn(msg);
+        wrappedAppender.addWarn(msg);
     }
 
     @Override
     public void addWarn(String msg, Throwable ex) {
-        delegateAppender.addWarn(msg, ex);
+        wrappedAppender.addWarn(msg, ex);
     }
 
     @Override
     public void addError(String msg) {
-        delegateAppender.addError(msg);
+        wrappedAppender.addError(msg);
     }
 
     @Override
     public void addError(String msg, Throwable ex) {
-        delegateAppender.addError(msg, ex);
+        wrappedAppender.addError(msg, ex);
     }
 
     @Override
     public void addFilter(Filter<E> newFilter) {
-        delegateAppender.addFilter(newFilter);
+        wrappedAppender.addFilter(newFilter);
     }
 
     @Override
     public void clearAllFilters() {
-        delegateAppender.clearAllFilters();
+        wrappedAppender.clearAllFilters();
     }
 
     @Override
     public List<Filter<E>> getCopyOfAttachedFiltersList() {
-        return delegateAppender.getCopyOfAttachedFiltersList();
+        return wrappedAppender.getCopyOfAttachedFiltersList();
     }
 
     @Override
     public FilterReply getFilterChainDecision(E event) {
-        return delegateAppender.getFilterChainDecision(event);
+        return wrappedAppender.getFilterChainDecision(event);
     }
 }

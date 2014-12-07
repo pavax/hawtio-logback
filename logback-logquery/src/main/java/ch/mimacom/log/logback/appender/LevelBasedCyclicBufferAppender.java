@@ -16,7 +16,7 @@ public class LevelBasedCyclicBufferAppender extends AppenderBase<ILoggingEvent> 
 
     private static final int DEFAULT_BUFFER_SIZE = 64;
 
-    private Map<String, Integer> maxBufferSizePerLevelMap = new HashMap<String, Integer>();
+    private Map<String, Integer> maxBufferSizePerLevelMap = new HashMap<>();
 
     private Map<Level, CyclicBuffer<ILoggingEvent>> bufferMap = null;
 
@@ -54,7 +54,7 @@ public class LevelBasedCyclicBufferAppender extends AppenderBase<ILoggingEvent> 
     }
 
     public void start() {
-        bufferMap = new HashMap<Level, CyclicBuffer<ILoggingEvent>>(5);
+        bufferMap = new HashMap<>(5);
         bufferMap.put(Level.TRACE, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.TRACE.toString())));
         bufferMap.put(Level.DEBUG, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.DEBUG.toString())));
         bufferMap.put(Level.INFO, new CyclicBuffer<ILoggingEvent>(maxBufferSizePerLevelMap.get(Level.INFO.toString())));

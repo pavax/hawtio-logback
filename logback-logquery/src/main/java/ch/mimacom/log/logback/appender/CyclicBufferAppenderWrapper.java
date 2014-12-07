@@ -8,15 +8,15 @@ import ch.qos.logback.core.read.CyclicBufferAppender;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CyclicBufferAbstractAppenderWrapper extends AbstractAppenderWrapper<CyclicBufferAppender<ILoggingEvent>, ILoggingEvent> implements LogQueryAwareAppender {
+public class CyclicBufferAppenderWrapper extends AbstractAppenderWrapper<CyclicBufferAppender<ILoggingEvent>, ILoggingEvent> implements LogQueryAwareAppender {
 
-    public CyclicBufferAbstractAppenderWrapper(CyclicBufferAppender<ILoggingEvent> cyclicBufferAppender) {
+    public CyclicBufferAppenderWrapper(CyclicBufferAppender<ILoggingEvent> cyclicBufferAppender) {
         super(cyclicBufferAppender);
     }
 
-    public CyclicBufferAbstractAppenderWrapper(CyclicBufferAppender<ILoggingEvent> cyclicBufferAppender, int i) {
+    public CyclicBufferAppenderWrapper(CyclicBufferAppender<ILoggingEvent> cyclicBufferAppender, int maxSize) {
         this(cyclicBufferAppender);
-        cyclicBufferAppender.setMaxSize(i);
+        cyclicBufferAppender.setMaxSize(maxSize);
     }
 
     @Override
@@ -28,7 +28,7 @@ public class CyclicBufferAbstractAppenderWrapper extends AbstractAppenderWrapper
 
     @Override
     public List<ILoggingEvent> getAllEvents() {
-        CyclicBufferAppender<ILoggingEvent> appender = super.getDelegateAppender();
+        CyclicBufferAppender<ILoggingEvent> appender = super.getWrappedAppender();
         int length = appender.getLength();
         List<ILoggingEvent> resultList = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
@@ -39,7 +39,7 @@ public class CyclicBufferAbstractAppenderWrapper extends AbstractAppenderWrapper
 
     @Override
     public int getLength() {
-        CyclicBufferAppender<ILoggingEvent> appender = super.getDelegateAppender();
+        CyclicBufferAppender<ILoggingEvent> appender = super.getWrappedAppender();
         return appender.getLength();
     }
 }
