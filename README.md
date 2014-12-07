@@ -25,8 +25,8 @@ The DefaultCyclicBufferAppender keeps N-Log-Events in-memory.
 @Configuration
 public class LogbackLogQueryConfig {
     @Bean
-    public LogbackAwareLogQueryMBeanImpl createLogbackAwareLogQueryMBeanImpl() {
-        return new LogbackAwareLogQueryMBeanImpl(new DefaultCyclicBufferAppender(10));
+    public LogbackLogQuery createLogbackAwareLogQueryMBeanImpl() {
+        return new LogbackLogQuery(new CyclicBufferAppenderWrapper(new CyclicBufferAppender<ILoggingEvent>(), 10));
     }
 }
 ```
@@ -37,12 +37,12 @@ public class LogbackLogQueryConfig {
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean class="ch.mimacom.log.logback.LogbackAwareLogQueryMBeanImpl"
+    <bean class="ch.mimacom.log.logback.LogbackLogQuery"
           init-method="start"
           destroy-method="stop">
         <constructor-arg name="logQueryAwareAppender">
-            <bean class="ch.mimacom.log.logback.appender.DefaultCyclicBufferAppender">
-                <constructor-arg name="maxBufferSize" value="1000"/>
+            <bean class="ch.mimacom.log.logback.appender.CyclicBufferAppender">
+                   <constructor-arg name="maxSize" value="10"/>
             </bean>
         </constructor-arg>
     </bean>
@@ -57,17 +57,17 @@ Allows to define a buffer-size for each level. Thus N-Log-Events for every Level
 public class LogbackLogQueryConfig {
   @Bean
     public LogbackAwareLogQueryMBeanImpl createLogbackAwareLogQueryMBeanImpl() {
-        return new LogbackAwareLogQueryMBeanImpl(
-                new LevelBasedCyclicBufferAppender(
-                        ImmutableMap.<String, Integer>builder()
-                                .put("TRACE", 5)
-                                .put("DEBUG", 5)
-                                .put("INFO", 5)
-                                .put("WARN", 10)
-                                .put("ERROR", 10)
-                                .build()
-                )
-        );
+         return new LogbackLogQuery(
+            new LevelBasedCyclicBufferAppender(
+                    ImmutableMap.<String, Integer>builder()
+                            .put("TRACE", 256)
+                            .put("DEBUG", 256)
+                            .put("INFO", 1024)
+                            .put("WARN", 1024)
+                            .put("ERROR", 1024)
+                            .build()
+            )
+         );
     }
 }
 ```

@@ -12,6 +12,8 @@ import io.fabric8.insight.log.LogEvent;
 import io.fabric8.insight.log.LogResults;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,12 +41,14 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
     }
 
     @Override
+    @PostConstruct
     public void start() {
         super.start();
         attachAppender();
     }
 
     @Override
+    @PreDestroy
     public void stop() {
         super.stop();
         removeAppender();
