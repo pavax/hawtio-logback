@@ -3,6 +3,7 @@ package ch.mimacom.log.logback;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -11,6 +12,7 @@ import io.fabric8.insight.log.LogEvent;
 import io.fabric8.insight.log.LogResults;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 
 public class LogbackLogQuery extends AbstractLogQuerySupport {
@@ -51,9 +53,11 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
     private void removeAppender() {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         Logger logger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
-        if (logger.getAppender(APPENDER_NAME) == null) {
+        Appender<ILoggingEvent> appender = logger.getAppender(APPENDER_NAME);
+        if (appender == null) {
             LOGGER.warn("No Appender named '" + APPENDER_NAME + "' was found");
         } else {
+            appender.stop();
             logger.detachAppender(APPENDER_NAME);
         }
     }
@@ -88,20 +92,26 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
         } else {
             filteredLogEvents = Lists.newArrayList(Iterables.filter(allLogEvents, predicate));
         }
-        if (count > -1) {
+        if (count > -1 && filteredLogEvents.size() > count) {
             return filteredLogEvents.subList(0, count);
-        } else {
-            return filteredLogEvents;
+
         }
+        return filteredLogEvents;
+
     }
 
     private LogResults toLogResult(List<LogEvent> logEventArrayList) {
-        final LogEvent minLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.min(logEventArrayList);
-        final LogEvent maxLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.max(logEventArrayList);
         final LogResults logResults = new LogResults();
-        logResults.setEvents(logEventArrayList);
-        logResults.setFromTimestamp(minLogEvent.getTimestamp().getTime());
-        logResults.setToTimestamp(maxLogEvent.getTimestamp().getTime());
+        if (logEventArrayList.size() > 0) {
+            final LogEvent minLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.min(logEventArrayList);
+            final LogEvent maxLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.max(logEventArrayList);
+
+            logResults.setEvents(logEventArrayList);
+            logResults.setFromTimestamp(minLogEvent.getTimestamp().getTime());
+            logResults.setToTimestamp(maxLogEvent.getTimestamp().getTime());
+            return logResults;
+        }
+        logResults.setEvents(Collections.<LogEvent>emptyList());
         return logResults;
     }
 
