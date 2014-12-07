@@ -1,6 +1,7 @@
 hawtio-logback
 ==============
 
+
 Quick-And-Dirty approach in order to provide 'LogQuery'-Support (see: https://github.com/fabric8io/fabric8/tree/master/insight/insight-log-core) for Logback.
 
 The Approach is mainly influenced by the insight-log4j project (see: https://github.com/fabric8io/fabric8/tree/master/insight/insight-log4j)
