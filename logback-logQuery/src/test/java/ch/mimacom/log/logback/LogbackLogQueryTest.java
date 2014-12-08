@@ -84,8 +84,7 @@ public class LogbackLogQueryTest {
     @Test
     public void testCyclicBufferAppender() throws Exception {
         logQuerySupport = new LogbackLogQuery(
-                new CyclicBufferAppenderWrapper(
-                        new CyclicBufferAppender<ILoggingEvent>(), 10)
+                new CyclicBufferAppenderWrapper(new CyclicBufferAppender<ILoggingEvent>(), 10)
         );
         logQuerySupport.start();
         createLogStatement(10, Level.INFO);
