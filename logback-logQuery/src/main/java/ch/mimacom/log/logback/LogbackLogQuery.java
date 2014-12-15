@@ -5,8 +5,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Ordering;
 import io.fabric8.insight.log.LogEvent;
 import io.fabric8.insight.log.LogResults;
@@ -90,27 +89,23 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
     }
 
     private List<LogEvent> filterLogEvents(Predicate<LogEvent> predicate, List<LogEvent> allLogEvents, int count) {
-        final List<LogEvent> filteredLogEvents;
-        if (predicate == null) {
-            filteredLogEvents = allLogEvents;
-        } else {
-            filteredLogEvents = Lists.newArrayList(Iterables.filter(allLogEvents, predicate));
+        FluentIterable<LogEvent> fluentIterable = FluentIterable.from(allLogEvents);
+        if (predicate != null) {
+            fluentIterable = fluentIterable.filter(predicate);
         }
-        if (count > -1 && filteredLogEvents.size() > count) {
-            return filteredLogEvents.subList(0, count);
-
+        if (count > -1) {
+           fluentIterable = fluentIterable.limit(count);
         }
-        return filteredLogEvents;
-
+        return fluentIterable.toList();
     }
 
-    private LogResults toLogResult(List<LogEvent> logEventArrayList) {
+    private LogResults toLogResult(List<LogEvent> logEvents) {
         final LogResults logResults = new LogResults();
-        if (logEventArrayList.size() > 0) {
-            final LogEvent minLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.min(logEventArrayList);
-            final LogEvent maxLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.max(logEventArrayList);
+        if (logEvents.size() > 0) {
+            final LogEvent minLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.min(logEvents);
+            final LogEvent maxLogEvent = LOG_EVENT_TIMESTAMP_ORDERING.max(logEvents);
 
-            logResults.setEvents(logEventArrayList);
+            logResults.setEvents(logEvents);
             logResults.setFromTimestamp(minLogEvent.getTimestamp().getTime());
             logResults.setToTimestamp(maxLogEvent.getTimestamp().getTime());
             return logResults;

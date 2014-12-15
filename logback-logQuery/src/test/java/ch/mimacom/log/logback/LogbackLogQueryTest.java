@@ -109,10 +109,29 @@ public class LogbackLogQueryTest {
         createLogStatement(8, Level.DEBUG);
         createLogStatement(9, Level.WARN);
         LogFilter filter = new LogFilter();
-        filter.setCount(999);
+        filter.setCount(ALL_LOG_RESULTS);
         filter.setLevels(new String[]{Level.ERROR.toString(), Level.DEBUG.toString()});
         LogResults queryLogResults = logQuerySupport.queryLogResults(filter);
         Assert.assertEquals(8, queryLogResults.getEvents().size());
+    }
+
+    @Test
+    public void testEventLogLimit() throws Exception {
+        logQuerySupport = new LogbackLogQuery(
+                new CyclicBufferAppenderWrapper(
+                        new CyclicBufferAppender<ILoggingEvent>(), 100)
+        );
+        logQuerySupport.start();
+        createLogStatement(10, Level.DEBUG);
+        //Test by LogResults count size
+        LogResults logResults = logQuerySupport.getLogResults(3);
+        Assert.assertEquals(3, logResults.getEvents().size());
+
+        //Test by Filter count size
+        LogFilter filter = new LogFilter();
+        filter.setCount(5);
+        LogResults logResults2 = logQuerySupport.queryLogResults(filter);
+        Assert.assertEquals(5, logResults2.getEvents().size());
     }
 
     @Test
@@ -125,7 +144,7 @@ public class LogbackLogQueryTest {
         createLogStatement(8, Level.DEBUG);
         createLogStatement(9, Level.WARN);
         LogFilter filter = new LogFilter();
-        filter.setCount(999);
+        filter.setCount(ALL_LOG_RESULTS);
 
         filter.setMatchesText("Debug-TEST");
         LogResults queryLogResults = logQuerySupport.queryLogResults(filter);
@@ -141,7 +160,7 @@ public class LogbackLogQueryTest {
     }
 
     @Test
-    public void testFilterDate() throws Exception {
+    public void testFilterEventByDate() throws Exception {
         logQuerySupport = new LogbackLogQuery(
                 new CyclicBufferAppenderWrapper(
                         new CyclicBufferAppender<ILoggingEvent>(), 100)
@@ -159,7 +178,7 @@ public class LogbackLogQueryTest {
         long currentTime3 = System.currentTimeMillis();
 
         LogFilter filter = new LogFilter();
-        filter.setCount(999);
+        filter.setCount(ALL_LOG_RESULTS);
 
         filter.setAfterTimestamp(currentTime1);
         LogResults queryLogResults = logQuerySupport.queryLogResults(filter);
@@ -177,6 +196,12 @@ public class LogbackLogQueryTest {
         filter.setBeforeTimestamp(currentTime2);
         LogResults queryLogResults4 = logQuerySupport.queryLogResults(filter);
         Assert.assertEquals(8, queryLogResults4.getEvents().size());
+
+
+        filter.setAfterTimestamp(currentTime1);
+        filter.setBeforeTimestamp(currentTime3);
+        LogResults queryLogResults5 = logQuerySupport.queryLogResults(filter);
+        Assert.assertEquals(8+5, queryLogResults5.getEvents().size());
     }
 
     private void createLogStatement(int counts, Level level) {
