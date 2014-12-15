@@ -41,8 +41,10 @@ public class LogbackLogQueryConfig {
           init-method="start"
           destroy-method="stop">
         <constructor-arg name="logQueryAwareAppender">
-            <bean class="ch.mimacom.log.logback.appender.CyclicBufferAppender">
+            <bean class="ch.mimacom.log.logback.appender.CyclicBufferAppenderWrapper">
+                <bean class="ch.qos.logback.core.read.CyclicBufferAppender">
                    <constructor-arg name="maxSize" value="10"/>
+                </bean>
             </bean>
         </constructor-arg>
     </bean>
