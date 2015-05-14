@@ -1,5 +1,6 @@
 package ch.mimacom.log.logback;
 
+import ch.qos.logback.classic.spi.LoggerContextListener;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import io.fabric8.insight.log.LogEvent;
