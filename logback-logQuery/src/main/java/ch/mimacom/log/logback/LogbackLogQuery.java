@@ -1,8 +1,10 @@
 package ch.mimacom.log.logback;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggerContextListener;
 import ch.qos.logback.core.Appender;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -16,7 +18,7 @@ import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 
-public class LogbackLogQuery extends AbstractLogQuerySupport {
+public class LogbackLogQuery extends AbstractLogQuerySupport implements LoggerContextListener {
 
     private static final transient org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LogbackLogQuery.class);
 
@@ -44,7 +46,9 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
     public void start() {
         super.start();
         attachAppender();
+        attachLoggerContextListener();
     }
+
 
     @Override
     @PreDestroy
@@ -54,7 +58,7 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
     }
 
     private void removeAppender() {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        LoggerContext loggerContext = getLoggerContext();
         Logger logger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
         Appender<ILoggingEvent> appender = logger.getAppender(APPENDER_NAME);
         if (appender == null) {
@@ -66,7 +70,7 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
     }
 
     private void attachAppender() {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        LoggerContext loggerContext = getLoggerContext();
         Logger logger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
         if (logger.getAppender(APPENDER_NAME) != null) {
             LOGGER.warn("An Appender named '" + APPENDER_NAME + "' is already registered");
@@ -75,6 +79,11 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
             logQueryAwareAppender.start();
             logger.addAppender(logQueryAwareAppender);
         }
+    }
+
+    private void attachLoggerContextListener() {
+        LoggerContext loggerContext = getLoggerContext();
+        loggerContext.addListener(this);
     }
 
     @Override
@@ -94,9 +103,13 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
             fluentIterable = fluentIterable.filter(predicate);
         }
         if (count > -1) {
-           fluentIterable = fluentIterable.limit(count);
+            fluentIterable = fluentIterable.limit(count);
         }
         return fluentIterable.toList();
+    }
+
+    private LoggerContext getLoggerContext() {
+        return (LoggerContext) LoggerFactory.getILoggerFactory();
     }
 
     private LogResults toLogResult(List<LogEvent> logEvents) {
@@ -114,4 +127,27 @@ public class LogbackLogQuery extends AbstractLogQuerySupport {
         return logResults;
     }
 
+    @Override
+    public boolean isResetResistant() {
+        return true;
+    }
+
+    @Override
+    public void onStart(LoggerContext loggerContext) {
+    }
+
+    @Override
+    public void onReset(LoggerContext loggerContext) {
+        attachAppender();
+    }
+
+    @Override
+    public void onStop(LoggerContext loggerContext) {
+        removeAppender();
+    }
+
+    @Override
+    public void onLevelChange(Logger logger, Level level) {
+
+    }
 }
